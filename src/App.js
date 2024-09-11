@@ -16,24 +16,39 @@ function App() {
     const totalCores = parseInt(coresPerServer) * parseInt(numServers);
     const maxStorage = totalCores; // 1TB per core restriction
 
-    let calculatedStorage = 0;
+    let minStorageTB = 0;
+    let halfUtilizationTB = 0;
+    let maxStorageTB = 0;
 
     if (desktopType === 'persistent') {
-      calculatedStorage = parseInt(numDesktops) * (parseFloat(imageSize) / 1024); // Convert GB to TB
+      // Persistent desktops calculation
+      const calculatedStorage = parseInt(numDesktops) * (parseFloat(imageSize) / 1024); // Convert GB to TB
+      minStorageTB = halfUtilizationTB = maxStorageTB = calculatedStorage;
     } else if (desktopType === 'instant') {
+      // Instant Clones calculation (non-persistent)
       const goldenImageSizeTB = parseFloat(imageSize) / 1024;
       const replicaDiskSizeTB = goldenImageSizeTB;
-      calculatedStorage = parseInt(numDesktops) * goldenImageSizeTB + 2 * replicaDiskSizeTB;
+
+      // Minimum Recommended: Only the replicas with minimal VM data.
+      minStorageTB = 2 * replicaDiskSizeTB; // Only replicas, minimal VM growth.
+
+      // 50% Utilization: VMs grow to 50% of the golden image size + 2 replicas.
+      halfUtilizationTB = (parseInt(numDesktops) * (0.5 * goldenImageSizeTB)) + (2 * replicaDiskSizeTB);
+
+      // Maximum Recommended: VMs grow to full size of the golden image + 2 replicas.
+      maxStorageTB = (parseInt(numDesktops) * goldenImageSizeTB) + (2 * replicaDiskSizeTB);
     }
 
-    // Add the scenario to the scenarios list
+    // Add the scenario to the scenarios list with all three calculations
     const newScenario = {
       type: desktopType,
-      calculatedStorage,
+      minStorageTB,
+      halfUtilizationTB,
+      maxStorageTB,
     };
 
     setScenarios([...scenarios, newScenario]);
-    setTotalStorageRequired(totalStorageRequired + calculatedStorage);
+    setTotalStorageRequired(totalStorageRequired + maxStorageTB); // Use maxStorageTB for total required storage tally
     setMaxAllowableStorage(maxStorage);
     clearInputs();
   };
@@ -47,7 +62,7 @@ function App() {
 
   return (
     <div style={{ padding: '20px' }}>
-      <h1>Storage Calculator for Desktops</h1>
+      <h1>Storage Calculator for Horizon Desktops</h1>
       <input
         type="number"
         placeholder="Cores per server"
@@ -93,8 +108,12 @@ function App() {
       <h2>Added Scenarios</h2>
       {scenarios.map((scenario, index) => (
         <div key={index} style={{ marginBottom: '10px' }}>
-          <p>Scenario {index + 1} - {scenario.type}:</p>
-          <p>Calculated Storage: {scenario.calculatedStorage.toFixed(2)} TB</p>
+          <p>
+            Scenario {index + 1} - {scenario.type}:
+          </p>
+          <p>Minimum Recommended Storage: {scenario.minStorageTB.toFixed(2)} TB</p>
+          <p>50% Utilization Storage: {scenario.halfUtilizationTB.toFixed(2)} TB</p>
+          <p>Maximum Recommended Storage: {scenario.maxStorageTB.toFixed(2)} TB</p>
         </div>
       ))}
 
@@ -104,8 +123,7 @@ function App() {
         <p>Total Storage Required: {totalStorageRequired.toFixed(2)} TB</p>
         <p>Max Allowable Storage: {maxAllowableStorage} TB</p>
         <p>
-          Sufficient Storage Overall?{' '}
-          {totalStorageRequired <= maxAllowableStorage ? 'Yes' : 'No'}
+          Sufficient Storage Overall? {totalStorageRequired <= maxAllowableStorage ? 'Yes' : 'No'}
         </p>
       </div>
     </div>
