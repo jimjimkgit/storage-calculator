@@ -14,7 +14,7 @@ function App() {
   // Function to calculate storage for a single scenario
   const calculateScenarioStorage = () => {
     const totalCores = parseInt(coresPerServer) * parseInt(numServers);
-    const maxStorage = totalCores; // 1TB per core restriction
+    const maxStorage = totalCores * 0.1; // 0.1TB (100GB) per core restriction
 
     let minStorageTB = 0;
     let halfUtilizationTB = 0;
@@ -49,7 +49,7 @@ function App() {
 
     setScenarios([...scenarios, newScenario]);
     setTotalStorageRequired(totalStorageRequired + maxStorageTB); // Use maxStorageTB for total required storage tally
-    setMaxAllowableStorage(maxStorage);
+    setMaxAllowableStorage(maxStorage); // Updated based on 100GB per core calculation
     clearInputs();
   };
 
@@ -62,7 +62,7 @@ function App() {
 
   return (
     <div style={{ padding: '20px' }}>
-      <h1>Storage Calculator for Horizon Desktops</h1>
+      <h1>Storage Calculator for Desktops</h1>
       <input
         type="number"
         placeholder="Cores per server"
@@ -121,9 +121,10 @@ function App() {
       <div style={{ marginTop: '20px' }}>
         <h2>Final Calculation Results for All Scenarios</h2>
         <p>Total Storage Required: {totalStorageRequired.toFixed(2)} TB</p>
-        <p>Max Allowable Storage: {maxAllowableStorage} TB</p>
+        <p>Max Allowable Storage: {maxAllowableStorage.toFixed(2)} TB</p>
         <p>
-          Sufficient Storage Overall? {totalStorageRequired <= maxAllowableStorage ? 'Yes' : 'No'}
+          Sufficient Storage Overall?{' '}
+          {totalStorageRequired <= maxAllowableStorage ? 'Yes' : 'No'}
         </p>
       </div>
     </div>
