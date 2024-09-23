@@ -60,6 +60,18 @@ function App() {
     setNumDesktops('');
   };
 
+  // Function to reset the calculator to its initial state
+  const resetCalculator = () => {
+    setCoresPerServer('');
+    setNumServers('');
+    setDesktopType('');
+    setImageSize('');
+    setNumDesktops('');
+    setScenarios([]);
+    setTotalStorageRequired(0);
+    setMaxAllowableStorage(0);
+  };
+
   return (
     <div style={{ padding: '20px' }}>
       <h1>Storage Calculator for Desktops</h1>
@@ -100,8 +112,11 @@ function App() {
         onChange={(e) => setNumDesktops(e.target.value)}
         style={{ display: 'block', marginBottom: '10px' }}
       />
-      <button onClick={calculateScenarioStorage} style={{ marginTop: '10px' }}>
+      <button onClick={calculateScenarioStorage} style={{ marginTop: '10px', marginRight: '10px' }}>
         Add Scenario
+      </button>
+      <button onClick={resetCalculator} style={{ marginTop: '10px' }}>
+        Reset Calculator
       </button>
 
       {/* Display all added scenarios */}
