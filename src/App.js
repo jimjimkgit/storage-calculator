@@ -75,8 +75,8 @@ function App() {
 
   // Function to reset the calculator to its initial state
   const resetCalculator = () => {
-    setCoresPerServer('');
     setNumServers('');
+    setCoresPerServer('');
     setDesktopType('');
     setImageSize('');
     setNumDesktops('');
@@ -92,16 +92,16 @@ function App() {
       <h1>Storage Calculator for Desktops</h1>
       <input
         type="number"
-        placeholder="Cores per server"
-        value={coresPerServer}
-        onChange={(e) => setCoresPerServer(e.target.value)}
+        placeholder="Number of servers"
+        value={numServers}
+        onChange={(e) => setNumServers(e.target.value)}
         style={{ display: 'block', marginBottom: '10px' }}
       />
       <input
         type="number"
-        placeholder="Number of servers"
-        value={numServers}
-        onChange={(e) => setNumServers(e.target.value)}
+        placeholder="Cores per server"
+        value={coresPerServer}
+        onChange={(e) => setCoresPerServer(e.target.value)}
         style={{ display: 'block', marginBottom: '10px' }}
       />
       <select
