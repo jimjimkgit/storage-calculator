@@ -7,6 +7,8 @@ function App() {
   const [desktopType, setDesktopType] = useState('');
   const [imageSize, setImageSize] = useState('');
   const [numDesktops, setNumDesktops] = useState('');
+  const [memorySize, setMemorySize] = useState('');
+  const [memoryReservation, setMemoryReservation] = useState(false);
   const [scenarios, setScenarios] = useState([]);
   const [totalStorageRequired, setTotalStorageRequired] = useState(0);
   const [maxAllowableStorage, setMaxAllowableStorage] = useState(0);
@@ -20,23 +22,32 @@ function App() {
     let halfUtilizationTB = 0;
     let maxStorageTB = 0;
 
+    // Convert memory size from GB to TB
+    const memorySizeTB = parseFloat(memorySize) / 1024;
+
+    // Calculate additional swap storage if no memory reservation is set
+    let additionalSwapStorageTB = 0;
+    if (!memoryReservation) {
+      additionalSwapStorageTB = parseInt(numDesktops) * memorySizeTB; // Add swap file size equal to memory size for each VM
+    }
+
     if (desktopType === 'persistent') {
       // Persistent desktops calculation
       const calculatedStorage = parseInt(numDesktops) * (parseFloat(imageSize) / 1024); // Convert GB to TB
-      minStorageTB = halfUtilizationTB = maxStorageTB = calculatedStorage;
+      minStorageTB = halfUtilizationTB = maxStorageTB = calculatedStorage + additionalSwapStorageTB;
     } else if (desktopType === 'instant') {
       // Instant Clones calculation (non-persistent)
       const goldenImageSizeTB = parseFloat(imageSize) / 1024;
       const replicaDiskSizeTB = goldenImageSizeTB;
 
       // Minimum Recommended: Only the replicas with minimal VM data.
-      minStorageTB = 2 * replicaDiskSizeTB; // Only replicas, minimal VM growth.
+      minStorageTB = (2 * replicaDiskSizeTB) + additionalSwapStorageTB; // Only replicas, minimal VM growth.
 
       // 50% Utilization: VMs grow to 50% of the golden image size + 2 replicas.
-      halfUtilizationTB = (parseInt(numDesktops) * (0.5 * goldenImageSizeTB)) + (2 * replicaDiskSizeTB);
+      halfUtilizationTB = (parseInt(numDesktops) * (0.5 * goldenImageSizeTB)) + (2 * replicaDiskSizeTB) + additionalSwapStorageTB;
 
       // Maximum Recommended: VMs grow to full size of the golden image + 2 replicas.
-      maxStorageTB = (parseInt(numDesktops) * goldenImageSizeTB) + (2 * replicaDiskSizeTB);
+      maxStorageTB = (parseInt(numDesktops) * goldenImageSizeTB) + (2 * replicaDiskSizeTB) + additionalSwapStorageTB;
     }
 
     // Add the scenario to the scenarios list with all three calculations
@@ -58,6 +69,8 @@ function App() {
     setDesktopType('');
     setImageSize('');
     setNumDesktops('');
+    setMemorySize('');
+    setMemoryReservation(false);
   };
 
   // Function to reset the calculator to its initial state
@@ -67,6 +80,8 @@ function App() {
     setDesktopType('');
     setImageSize('');
     setNumDesktops('');
+    setMemorySize('');
+    setMemoryReservation(false);
     setScenarios([]);
     setTotalStorageRequired(0);
     setMaxAllowableStorage(0);
@@ -112,6 +127,21 @@ function App() {
         onChange={(e) => setNumDesktops(e.target.value)}
         style={{ display: 'block', marginBottom: '10px' }}
       />
+      <input
+        type="number"
+        placeholder="Memory Assigned per Desktop (GB)"
+        value={memorySize}
+        onChange={(e) => setMemorySize(e.target.value)}
+        style={{ display: 'block', marginBottom: '10px' }}
+      />
+      <label style={{ display: 'block', marginBottom: '10px' }}>
+        <input
+          type="checkbox"
+          checked={memoryReservation}
+          onChange={(e) => setMemoryReservation(e.target.checked)}
+        />
+        Memory Reservation Set
+      </label>
       <button onClick={calculateScenarioStorage} style={{ marginTop: '10px', marginRight: '10px' }}>
         Add Scenario
       </button>
